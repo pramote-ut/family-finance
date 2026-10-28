@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>บัญชีครอบครัว</title>
+  <meta name="theme-color" content="#174f3e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="บัญชีครอบครัว">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Mali:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand-block">
+      <h1><svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#fff7e9"/><path d="M8 20 20 10l12 10v12H8Z" fill="#e88a6d"/><path d="M12 20v10h16V20l-8-6Z" fill="#fffdf7"/><circle cx="16" cy="23" r="2.7" fill="#174f3e"/><circle cx="24" cy="23" r="2.7" fill="#174f3e"/><circle cx="20" cy="25.2" r="2.4" fill="#d9a43b"/><path d="M12.8 30c.4-3.1 2-4.7 4.2-4.7s3.7 1.5 4.1 4.7M18.9 30c.4-3.1 2-4.7 4.2-4.7s3.7 1.5 4.1 4.7" fill="#174f3e"/><path d="M16.8 30c.3-2.6 1.5-3.9 3.2-3.9s2.9 1.3 3.2 3.9" fill="#d9a43b"/><path d="M27 12c2-4 7-2 6 2-1 2-3 3-6 5-3-2-5-3-6-5-1-4 4-6 6-2Z" fill="#d9a43b"/></svg><span>บัญชีครอบครัว</span></h1>
+      <p>ใช้จ่ายอย่างเข้าใจ<br>เพื่ออนาคตที่ดีของเรา</p>
+    </div>
+    <nav class="top-nav">
+      <button data-goto="dashboard" class="active"><span class="nav-ico">⌂</span>ภาพรวม</button>
+      <button data-goto="list"><span class="nav-ico">≡</span>รายการ</button>
+      <button data-goto="add"><span class="nav-ico">＋</span>เพิ่มรายการ</button>
+      <button data-goto="plan"><span class="nav-ico">◷</span>บิลและงบ</button>
+      <button data-goto="funds"><span class="nav-ico">♧</span>เป้าหมายเงินเก็บ</button>
+      <button data-goto="settings"><span class="nav-ico">⚙</span>ตั้งค่า</button>
+    </nav>
+    <div class="side-family" aria-hidden="true">
+      <img class="family-illustration" src="images/family-boy.png" alt="">
+      <p>ครอบครัว<br>คือพลังที่ดีที่สุด <i>♥</i><br>ในการเดินต่อ</p>
+    </div>
+  </header>
+
+  <div class="workspace-head">
+    <div class="welcome-mark" aria-hidden="true">☀</div>
+    <div class="welcome-copy">
+      <h2>สวัสดีค่ะ</h2>
+      <p>วันนี้เรามาดูสถานะการเงินของครอบครัวกัน</p>
+    </div>
+    <div class="period-pick">
+      <input type="month" id="month" aria-label="เลือกรอบเดือน">
+      <span id="period-range" class="period-range"></span>
+    </div>
+    <div class="family-chip"><svg class="family-avatar" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="17" fill="#f4e5d5"/><circle cx="12" cy="14" r="5" fill="#e8b38c"/><circle cx="24" cy="14" r="5" fill="#e8b38c"/><circle cx="18" cy="20" r="4.5" fill="#efc39f"/><path d="M6 30c1-7 4-11 8-11 2 0 3 1 4 2 1-2 3-2 5-2 4 0 7 4 8 11" fill="#4f785f"/><path d="M12 17q2 2 4 0M22 17q2 2 4 0M16 22q2 2 4 0" fill="none" stroke="#a95945" stroke-width="1.2" stroke-linecap="round"/></svg><b>ครอบครัวสุขสันต์</b></div>
+  </div>
+
+  <main>
+    <!-- ภาพรวม -->
+    <section id="view-dashboard" class="view active">
+      <div class="dash-bar">
+        <div class="member-tabs" id="member-tabs" role="tablist" aria-label="ดูของใคร"></div>
+        <div class="updated"><span>อัปเดตล่าสุด <b id="last-updated">–</b></span><button class="refresh" id="refresh-btn" aria-label="โหลดแอปเวอร์ชันล่าสุด" title="โหลดแอปเวอร์ชันล่าสุด">↻</button></div>
+      </div>
+      <div class="dash2">
+        <div class="hero">
+          <div class="hero-head">
+            <div><div class="hero-label">คงเหลือสุทธิ</div><div class="hero-period" id="hero-month"></div></div>
+            <span class="pill" id="hero-rate"></span>
+          </div>
+          <div class="hero-value" id="hero-net">–</div>
+          <svg class="hero-coins" viewBox="0 0 120 90" aria-hidden="true">
+            <g fill="#e9c46a" stroke="#b8892b" stroke-width="1.5">
+              <ellipse cx="38" cy="78" rx="26" ry="8"/><rect x="12" y="46" width="52" height="32"/><ellipse cx="38" cy="46" rx="26" ry="8" fill="#f4d58d"/>
+              <ellipse cx="84" cy="80" rx="24" ry="7"/><rect x="60" y="60" width="48" height="20"/><ellipse cx="84" cy="60" rx="24" ry="7" fill="#f4d58d"/>
+            </g>
+            <g stroke="#b8892b" stroke-width="1" opacity=".55"><path d="M12 54h52M12 62h52M12 70h52M60 68h48M60 74h48"/></g>
+          </svg>
+          <div class="alloc" id="hero-alloc" aria-hidden="true"></div>
+          <div class="alloc-legend" id="hero-alloc-legend"></div>
+          <div class="hero-sub" id="hero-sub"></div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><span class="kico income">↑</span><div class="kbody"><div class="kpi-label">รายรับ</div>
+            <div class="kpi-value" id="kpi-income">–</div><span class="delta" id="kpi-income-delta"></span></div>
+            <svg class="minibars" id="spark-income" viewBox="0 0 60 36" preserveAspectRatio="none"></svg></div>
+          <div class="kpi"><span class="kico expense">↓</span><div class="kbody"><div class="kpi-label">รายจ่าย</div>
+            <div class="kpi-value" id="kpi-expense">–</div><span class="delta" id="kpi-expense-delta"></span></div>
+            <svg class="minibars" id="spark-expense" viewBox="0 0 60 36" preserveAspectRatio="none"></svg></div>
+          <div class="kpi"><span class="kico saving">▥</span><div class="kbody"><div class="kpi-label">คงเหลือ</div>
+            <div class="kpi-value" id="kpi-saving">–</div><span class="delta" id="kpi-saving-delta"></span></div>
+            <svg class="minibars" id="spark-saving" viewBox="0 0 60 36" preserveAspectRatio="none"></svg></div>
+          <button class="kpi kpi-link" data-goto="funds"><span class="kico funds">◕</span><div class="kbody"><div class="kpi-label">เงินเก็บทั้งหมด</div>
+            <div class="kpi-value" id="kpi-funds">–</div><span class="delta muted" id="kpi-funds-sub"></span></div>
+            <span class="chev">›</span></button>
+        </div>
+
+        <div class="panel expense-periods">
+          <div class="panel-head expense-period-head">
+            <div><h2>สรุปรายจ่าย</h2><p class="panel-sub">เทียบกับช่วงก่อนหน้าในระยะเวลาเท่ากัน</p></div>
+          </div>
+          <div class="expense-period-grid" id="expense-period-grid"></div>
+        </div>
+
+        <div class="panel insights" id="insights"></div>
+
+        <div class="panel pupcoming">
+          <div class="panel-head">
+            <div><h2>📅 รายจ่ายที่ต้องจ่าย</h2><p class="panel-sub" id="up-sub"></p></div>
+            <button class="link" data-goto="plan">จัดการ</button>
+          </div>
+          <div id="dash-upcoming"></div>
+        </div>
+
+        <div class="panel pbudget">
+          <div class="panel-head">
+            <div><h2>🎯 งบรอบนี้ <small class="scope">ทั้งบ้าน</small></h2><p class="panel-sub" id="bud-sub"></p></div>
+            <button class="link" data-goto="plan">ตั้งงบ</button>
+          </div>
+          <div id="dash-budget"></div>
+        </div>
+
+        <div class="panel trend">
+          <div class="panel-head">
+            <div><h2>ภาพรวม <small>รายรับ - รายจ่าย</small></h2><p class="panel-sub" id="trend-sub"></p></div>
+            <div class="legend"><span><i class="dot income"></i>รายรับ</span><span><i class="dot expense"></i>รายจ่าย</span></div>
+          </div>
+          <div class="chart-box tall"><canvas id="chart-trend" aria-label="กราฟแนวโน้ม 6 รอบ"></canvas></div>
+        </div>
+
+        <div class="panel cats">
+          <div class="panel-head">
+            <div><h2>งบประมาณ</h2><p class="panel-sub">สัดส่วนรายจ่ายรอบนี้</p></div>
+            <button class="link" data-goto="plan">ดูทั้งหมด</button>
+          </div>
+          <div class="budget-donut">
+            <div class="donut-wrap">
+              <canvas id="chart-cats" aria-label="กราฟสัดส่วนรายจ่ายตามหมวด"></canvas>
+              <div class="donut-center"><span>รวมรายจ่าย</span><b id="cat-total">–</b></div>
+            </div>
+            <div class="cat-legend" id="cat-bars"></div>
+          </div>
+        </div>
+
+        <div class="panel pfunds">
+          <div class="panel-head"><div><h2>เป้าหมายเงินเก็บ</h2><p class="panel-sub" id="dash-funds-sub"></p></div>
+            <button class="link" data-goto="funds">จัดการ</button></div>
+          <div id="dash-funds"></div>
+        </div>
+
+        <div class="panel precent">
+          <div class="panel-head"><div><h2>รายการล่าสุด</h2></div><button class="link" data-goto="list">ดูทั้งหมด</button></div>
+          <ul class="tx-list" id="recent-list"></ul>
+          <button class="primary recent-add" data-goto="add">＋ เพิ่มรายการ</button>
+        </div>
+
+        <div class="pstack">
+          <div class="panel">
+            <div class="panel-head"><div><h2>รายรับตามแหล่งที่มา</h2><p class="panel-sub">รอบนี้</p></div></div>
+            <div class="hbars" id="inc-bars"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div><h2>แยกตามสมาชิก <small class="scope">ทั้งบ้าน</small></h2></div></div>
+            <table class="table" id="member-table"></table>
+          </div>
+        </div>
+
+        <div class="panel pcum">
+          <div class="panel-head">
+            <div><h2>จ่ายสะสมรายวัน</h2><p class="panel-sub" id="pace-sub"></p></div>
+            <div class="legend"><span><i class="line expense"></i>รอบนี้</span><span><i class="line compare"></i>รอบก่อน</span></div>
+          </div>
+          <div class="chart-box"><canvas id="chart-cum" aria-label="กราฟรายจ่ายสะสม"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- รายการ -->
+    <section id="view-list" class="view">
+      <div class="filters">
+        <input type="search" id="filter-text" placeholder="ค้นหา ผู้รับ/หมวด/บันทึก">
+        <select id="filter-type">
+          <option value="">ทุกประเภท</option>
+          <option value="income">รายรับ</option>
+          <option value="expense">รายจ่าย</option>
+          <option value="transfer">โอนระหว่างบัญชี</option>
+        </select>
+        <select id="filter-member"><option value="">ทุกคน</option></select>
+      </div>
+      <ul class="tx-list" id="tx-list"></ul>
+    </section>
+
+    <!-- เพิ่มรายการ -->
+    <section id="view-add" class="view">
+      <div class="segmented" role="tablist">
+        <button class="seg active" data-mode="slip">สลิป</button>
+        <button class="seg" data-mode="statement">Statement</button>
+        <button class="seg" data-mode="manual">กรอกเอง</button>
+      </div>
+
+      <div class="mode" id="mode-slip">
+        <label class="dropzone">
+          <input type="file" id="slip-input" accept="image/*" multiple hidden>
+          <strong>เลือกรูปสลิป</strong>
+          <span>เลือกได้หลายรูปจากอัลบั้ม K PLUS, SCB EASY, Krungthai NEXT ฯลฯ</span>
+        </label>
+      </div>
+
+      <div class="mode" id="mode-statement" hidden>
+        <label class="field">บัญชี
+          <select id="statement-account"></select>
+        </label>
+        <label class="dropzone">
+          <input type="file" id="statement-input" accept=".pdf,.csv,.txt,application/pdf,text/csv" hidden>
+          <strong>เลือกไฟล์ Statement</strong>
+          <span>PDF (รองรับไฟล์ติดรหัสผ่าน) หรือ CSV</span>
+        </label>
+      </div>
+
+      <form class="mode card" id="mode-manual" hidden>
+        <div class="grid2">
+          <label class="field">ประเภท
+            <select name="type">
+              <option value="expense">รายจ่าย</option>
+              <option value="income">รายรับ</option>
+              <option value="transfer">โอนระหว่างบัญชี</option>
+            </select>
+          </label>
+          <label class="field">จำนวนเงิน
+            <input name="amount" type="number" step="0.01" min="0" inputmode="decimal" required>
+          </label>
+          <label class="field">วันที่<input name="date" type="date" required></label>
+          <label class="field">เวลา<input name="time" type="time"></label>
+          <label class="field">หมวดหมู่<select name="category"></select></label>
+          <label class="field">บัญชี/ช่องทาง<select name="account"></select></label>
+        </div>
+        <label class="field">ผู้รับ/ผู้จ่าย/ร้านค้า<input name="counterparty"></label>
+        <label class="field">บันทึก<input name="note"></label>
+        <label class="field">เงินเก็บ<select name="fundSel"></select></label>
+        <label class="field">รูปหลักฐาน (ใบเสร็จ/สลิป)
+          <input name="evidence" type="file" accept="image/*,application/pdf">
+        </label>
+        <button class="primary" type="submit">บันทึก</button>
+      </form>
+
+      <div id="progress" class="progress" hidden></div>
+      <div id="drafts"></div>
+      <div id="drafts-actions" class="sticky-actions" hidden>
+        <button class="ghost" id="drafts-clear">ยกเลิก</button>
+        <button class="primary" id="drafts-save">บันทึกที่เลือก</button>
+      </div>
+    </section>
+
+    <!-- เงินเก็บ -->
+    <section id="view-funds" class="view">
+      <div class="funds-page-head">
+        <div><span class="eyebrow">วางแผนเพื่อวันข้างหน้า</span><h2>เป้าหมายเงินเก็บ</h2><p>สร้างเป้าหมาย ติดตามความคืบหน้า และเติมเงินได้จากหน้าเดียว</p></div>
+        <button class="primary" id="fund-new">＋ สร้างเป้าหมายใหม่</button>
+      </div>
+      <div class="goal-summary">
+        <div class="goal-metric total"><span>เงินเก็บทั้งหมด</span><strong id="funds-total">–</strong><small>รวมทุกเป้าหมายและเงินสำรอง</small></div>
+        <div class="goal-metric"><span>กำลังออม</span><strong id="goals-active">–</strong><small>เป้าหมายที่ยังไปไม่ถึง</small></div>
+        <div class="goal-metric"><span>ควรออมต่อเดือน</span><strong id="goals-monthly">–</strong><small>เพื่อให้ทันวันที่กำหนด</small></div>
+      </div>
+      <div class="goal-toolbar" id="goal-filter" role="tablist" aria-label="กรองเป้าหมายเงินเก็บ">
+        <button data-goal-filter="all" class="active" role="tab" aria-selected="true">ทั้งหมด</button>
+        <button data-goal-filter="active" role="tab" aria-selected="false">กำลังออม</button>
+        <button data-goal-filter="completed" role="tab" aria-selected="false">ถึงเป้าแล้ว</button>
+      </div>
+      <div id="funds-list"></div>
+    </section>
+
+    <!-- วางแผน -->
+    <section id="view-plan" class="view">
+      <div class="plan-metrics">
+        <div class="m-card"><span>งบรวมรอบนี้</span><b id="pm-total">–</b><small id="pm-period"></small></div>
+        <div class="m-card"><span>ใช้ไปแล้ว</span><b id="pm-spent">–</b><small id="pm-pace"></small></div>
+        <div class="m-card"><span>ต้องจ่ายใน 30 วัน</span><b id="pm-due">–</b><small id="pm-due-n"></small></div>
+      </div>
+
+      <div class="card">
+        <div class="row-between"><h2>งบรายจ่ายตามหมวด <small class="scope">ทั้งบ้าน</small></h2><button class="ghost" id="budget-add">＋ ตั้งงบ</button></div>
+        <div class="legend status-legend"><span class="st ok">✓ ปกติ</span><span class="st warn">⚠ ใกล้เต็ม ≥ 80%</span><span class="st over">! เกินงบ</span></div>
+        <div id="plan-budgets"></div>
+        <div id="plan-budget-suggest"></div>
+      </div>
+
+      <div class="card">
+        <div class="row-between"><h2>รายจ่ายล่วงหน้า</h2><button class="ghost" id="bill-add">＋ เพิ่ม</button></div>
+        <p class="hint">บันทึกสลิปที่ยอดใกล้เคียง (±5%) ภายใน ±7 วันจากวันครบกำหนด ระบบจะทำเครื่องหมายจ่ายแล้ว เลื่อนไปรอบถัดไป และลดจำนวนเดือนที่เหลือให้อัตโนมัติ</p>
+        <div id="plan-bills"></div>
+      </div>
+
+      <div class="card" id="plan-bill-suggest-card" hidden>
+        <h2>รายการที่น่าจะเป็นรายจ่ายประจำ</h2>
+        <p class="hint">จากประวัติของคุณ — กดเพิ่มเพื่อให้ขึ้นในกล่องรายจ่ายที่ต้องจ่าย</p>
+        <div id="plan-bill-suggest"></div>
+      </div>
+    </section>
+
+    <!-- ตั้งค่า -->
+    <section id="view-settings" class="view">
+      <form class="card" id="settings-form">
+        <h2>เชื่อมต่อ</h2>
+        <label class="field">URL ของ Backend (Apps Script Web App)
+          <input name="url" type="text" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec (หรือพิมพ์ demo เพื่อทดลอง)" required>
+        </label>
+        <label class="field">รหัสครอบครัว
+          <input name="passcode" type="password" autocomplete="current-password" required>
+        </label>
+        <label class="field">ฉันคือ
+          <select name="member"></select>
+        </label>
+        <button class="primary" type="submit">บันทึกและเชื่อมต่อ</button>
+        <p class="hint" id="settings-status"></p>
+      </form>
+      <div class="card">
+        <h2>รอบเดือน</h2>
+        <p class="hint">สรุปรายรับรายจ่ายแต่ละเดือนเริ่มนับจากวันที่นี้ เช่น 28 = 28 ก.ย. – 27 ต.ค.</p>
+        <div class="row-between" style="margin-top:10px">
+          <label class="field" style="flex:1;margin:0">วันเริ่มรอบ<select id="cycle-day"></select></label>
+          <button class="ghost" id="cycle-save" style="align-self:flex-end">บันทึก</button>
+        </div>
+        <p class="hint" id="cycle-status"></p>
+      </div>
+      <div class="card">
+        <h2>อีเมลแจ้งเตือนธนาคาร</h2>
+        <p class="hint">ระบบดึงอีเมลอัตโนมัติทุก 30 นาที กดปุ่มนี้เพื่อดึงทันที</p>
+        <button class="ghost" id="sync-gmail">ดึงอีเมลตอนนี้</button>
+        <p class="hint" id="gmail-status"></p>
+      </div>
+      <div class="card">
+        <h2>หมวดหมู่ สมาชิก และบัญชี</h2>
+        <p class="hint">แก้ไขได้ที่ชีต Categories, Members, Accounts ใน Google Sheet แล้วกดโหลดใหม่</p>
+        <button class="ghost" id="reload-meta">โหลดใหม่</button>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button data-goto="dashboard" class="active"><span class="ico">◔</span>ภาพรวม</button>
+    <button data-goto="list"><span class="ico">≡</span>รายการ</button>
+    <button data-goto="add"><span class="ico">＋</span>เพิ่ม</button>
+    <button data-goto="plan"><span class="ico">◎</span>วางแผน</button>
+    <button data-goto="funds"><span class="ico">฿</span>เงินเก็บ</button>
+    <button data-goto="settings"><span class="ico">⚙</span>ตั้งค่า</button>
+  </nav>
+
+  <dialog id="edit-dialog">
+    <form method="dialog" id="edit-form">
+      <h2>แก้ไขรายการ</h2>
+      <div class="grid2">
+        <label class="field">ประเภท
+          <select name="type">
+            <option value="expense">รายจ่าย</option>
+            <option value="income">รายรับ</option>
+            <option value="transfer">โอนระหว่างบัญชี</option>
+          </select>
+        </label>
+        <label class="field">จำนวนเงิน<input name="amount" type="number" step="0.01" min="0" inputmode="decimal"></label>
+        <label class="field">วันที่<input name="date" type="date"></label>
+        <label class="field">เวลา<input name="time" type="time"></label>
+        <label class="field">หมวดหมู่<select name="category"></select></label>
+        <label class="field">สมาชิก<select name="member"></select></label>
+      </div>
+      <label class="field">บัญชี/ช่องทาง<select name="account"></select></label>
+      <label class="field">ผู้รับ/ผู้จ่าย<input name="counterparty"></label>
+      <label class="field">บันทึก<input name="note"></label>
+      <label class="field">เงินเก็บ<select name="fundSel"></select></label>
+      <label class="field gold-only" hidden>น้ำหนักทอง (กรัม)<input name="goldGrams" type="number" step="0.001" min="0" inputmode="decimal" placeholder="1 บาท = 15.244 · 1 สลึง = 3.811"></label>
+      <p class="hint" id="edit-meta"></p>
+      <label class="attach">
+        <input type="file" id="edit-evidence" accept="image/*,application/pdf" hidden>
+        <span id="edit-evidence-label">📎 แนบรูปหลักฐาน</span>
+      </label>
+      <div class="row-between">
+        <button type="button" class="danger" id="edit-delete">ลบ</button>
+        <div>
+          <button value="cancel" class="ghost">ปิด</button>
+          <button value="save" class="primary">บันทึก</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="fund-move-dialog">
+    <form method="dialog" id="fund-move-form">
+      <h2 id="fund-move-title">ฝากเงิน</h2>
+      <p class="hint" id="fund-move-balance"></p>
+      <div class="grid2">
+        <label class="field">จำนวนเงิน<input name="amount" type="number" step="0.01" min="0.01" inputmode="decimal" required></label>
+        <label class="field">วันที่<input name="date" type="date" required></label>
+      </div>
+      <label class="field">บัญชี<select name="account"></select></label>
+      <label class="field">บันทึก<input name="note" placeholder="เช่น แต๊ะเอียจากคุณยาย"></label>
+      <div class="row-end">
+        <button value="cancel" class="ghost" formnovalidate>ยกเลิก</button>
+        <button value="save" class="primary">บันทึก</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="fund-edit-dialog">
+    <form method="dialog" id="fund-edit-form">
+      <h2 id="fund-edit-title">เป้าหมายเงินเก็บ</h2>
+      <label class="field">ชื่อเป้าหมาย<input name="name" required placeholder="เช่น ค่าเทอมน้องมิว หรือ ทริปครอบครัว"></label>
+      <div class="grid2">
+        <label class="field">ประเภท
+          <select name="kind">
+            <option value="child">เงินเก็บลูก</option>
+            <option value="emergency">เงินสำรองฉุกเฉิน</option>
+            <option value="family">เงินเก็บครอบครัว</option>
+            <option value="gold">ออมทอง</option>
+            <option value="other">เป้าหมายอื่น</option>
+          </select>
+        </label>
+        <label class="field">ของใคร<input name="owner" list="member-names" placeholder="เช่น น้องมิว"></label>
+        <label class="field">ยอดเป้าหมาย (บาท)<input name="target" type="number" step="1" min="0" inputmode="numeric"></label>
+        <label class="field">วันที่ต้องการถึงเป้า<input name="targetDate" type="date"></label>
+      </div>
+      <label class="field">บัญชีที่ผูก (โอนเข้าบัญชีนี้ = ฝากเข้าเงินเก็บ)<select name="account"></select></label>
+      <label class="field">บันทึก<input name="note"></label>
+      <datalist id="member-names"></datalist>
+      <div class="row-between">
+        <button type="button" class="danger" id="fund-delete">ลบ</button>
+        <div>
+          <button value="cancel" class="ghost" formnovalidate>ยกเลิก</button>
+          <button value="save" class="primary">บันทึก</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="gold-dialog">
+    <form method="dialog" id="gold-form">
+      <h2 id="gold-title">ซื้อทอง</h2>
+      <p class="hint" id="gold-hint"></p>
+      <div class="grid2">
+        <label class="field">น้ำหนัก<input name="weight" type="number" step="0.001" min="0.001" inputmode="decimal" required></label>
+        <label class="field">หน่วย
+          <select name="unit">
+            <option value="salung">สลึง (3.811 ก.)</option>
+            <option value="baht">บาททอง (15.244 ก.)</option>
+            <option value="gram">กรัม</option>
+          </select>
+        </label>
+        <label class="field" id="gold-amount-label">จำนวนเงินที่จ่าย<input name="amount" type="number" step="0.01" min="0.01" inputmode="decimal" required></label>
+        <label class="field">วันที่<input name="date" type="date" required></label>
+      </div>
+      <label class="field">ร้าน/แอป<input name="vendor" placeholder="เช่น ออโรร่า, ฮั่วเซ่งเฮง, YLG"></label>
+      <label class="field">บัญชี<select name="account"></select></label>
+      <label class="field">บันทึก<input name="note"></label>
+      <div class="row-end">
+        <button value="cancel" class="ghost" formnovalidate>ยกเลิก</button>
+        <button value="save" class="primary">บันทึก</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="gold-price-dialog">
+    <form method="dialog" id="gold-price-form">
+      <h2>ตั้งราคาทองเอง</h2>
+      <p class="hint">ใช้เมื่อดึงราคาอัตโนมัติไม่ได้ — ราคาทองแท่งต่อ 1 บาททอง</p>
+      <div class="grid2">
+        <label class="field">รับซื้อ<input name="barBuy" type="number" step="10" min="1" required></label>
+        <label class="field">ขายออก<input name="barSell" type="number" step="10" min="1"></label>
+      </div>
+      <div class="row-end">
+        <button value="cancel" class="ghost" formnovalidate>ยกเลิก</button>
+        <button value="save" class="primary">บันทึก</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="budget-dialog">
+    <form method="dialog" id="budget-form">
+      <h2>ตั้งงบรายจ่าย</h2>
+      <label class="field">หมวด<select name="category" required></select></label>
+      <label class="field">งบต่อรอบ (บาท)<input name="amount" type="number" min="0" step="100" inputmode="numeric" required></label>
+      <p class="hint" id="budget-hint"></p>
+      <div class="row-between">
+        <button type="button" class="danger" id="budget-delete">ยกเลิกงบหมวดนี้</button>
+        <div><button value="cancel" class="ghost" formnovalidate>ปิด</button> <button value="save" class="primary">บันทึก</button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="bill-dialog">
+    <form method="dialog" id="bill-form">
+      <h2 id="bill-title">รายจ่ายล่วงหน้า</h2>
+      <label class="field">ชื่อรายการ<input name="name" required placeholder="เช่น ต่อประกันรถ"></label>
+      <div class="grid2">
+        <label class="field">จำนวนเงิน<input name="amount" type="number" min="0" step="0.01" inputmode="decimal" required></label>
+        <label class="field">ครบกำหนด<input name="dueDate" type="date" required></label>
+        <label class="field">จ่ายทุก
+          <select name="repeat">
+            <option value="once">ครั้งเดียว</option>
+            <option value="monthly">ทุกเดือน</option>
+            <option value="months">ทุก N เดือน</option>
+            <option value="yearly">ทุกปี</option>
+          </select>
+        </label>
+        <label class="field" id="bill-every">ทุกกี่เดือน<input name="everyMonths" type="number" min="1" value="3"></label>
+        <label class="field" id="bill-term">จำนวนเดือนที่ต้องจ่าย (ไม่บังคับ)
+          <input name="termMonths" type="number" min="1" placeholder="เช่น 60">
+          <small class="field-hint" id="bill-term-status">เว้นว่างหากจ่ายต่อเนื่องไม่มีกำหนด</small>
+        </label>
+        <label class="field">หมวด<select name="category"></select></label>
+        <label class="field">ของใคร<select name="member"></select></label>
+      </div>
+      <label class="field">จ่ายจากเงินเก็บ (ไม่บังคับ)<select name="fund"></select></label>
+      <label class="field">คำที่ใช้จับคู่กับสลิป<input name="keyword" placeholder="เช่น เจนเนอราลี่, GHBANK"></label>
+      <label class="field">บันทึก<input name="note"></label>
+      <div class="row-between">
+        <button type="button" class="danger" id="bill-delete">ลบ</button>
+        <div><button value="cancel" class="ghost" formnovalidate>ปิด</button> <button value="save" class="primary">บันทึก</button></div>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="fund-history-dialog">
+    <form method="dialog">
+      <h2 id="fund-history-title">ประวัติ</h2>
+      <ul class="tx-list" id="fund-history-list"></ul>
+      <div class="row-end"><button class="ghost">ปิด</button></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+    integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"
+    integrity="sha384-hStSInNIZ8ljtOVrmrgf7zdHMapaLBWoSnPTtF0nzsybp4+LuhDz6sHuEVpWIX8o" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"
+    integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
+  <script src="app.js"></script>
+</body>
+</html>
