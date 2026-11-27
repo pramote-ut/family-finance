@@ -190,6 +190,7 @@ async function loadMonth() {
     renderDashboard();
     $('#last-updated').textContent = new Date().toLocaleString('th-TH', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' });
     renderList();
+    renderChecklist();
   } catch (err) {
     toast(err.message);
   }
@@ -1260,8 +1261,10 @@ $('#budget-delete').addEventListener('click', async () => {
 
 // ---- รายจ่ายล่วงหน้า: เปิด/บันทึก/จ่ายแล้ว
 let billEditing = null;
+let billFromTx = false; // เปิดจาก "รายการที่จ่ายไปรอบนี้": บันทึกแล้วติ๊กว่าจ่ายแล้วด้วย
 function openBill(b) {
   billEditing = b && b.id ? b : null;
+  billFromTx = false;
   const f = $('#bill-form');
   f.reset();
   $('#bill-title').textContent = billEditing ? 'แก้ไขรายจ่ายล่วงหน้า' : 'เพิ่มรายจ่ายล่วงหน้า';
@@ -1312,7 +1315,10 @@ $('#bill-dialog').addEventListener('close', async () => {
   if (billEditing) bill.id = billEditing.id;
   try {
     await api('saveBill', { bill });
-    toast('บันทึกแล้ว');
+    if (billFromTx && !billEditing) {
+      const paid = await markNewBillsPaid([bill]);
+      toast(paid ? 'เพิ่มเข้าเช็กลิสต์และติ๊กว่าจ่ายแล้ว' : 'เพิ่มแล้ว แต่ติ๊กจ่ายไม่สำเร็จ — ติ๊กเองในเช็กลิสต์ได้');
+    } else toast('บันทึกแล้ว');
     loadPlan();
   } catch (err) { toast(err.message); }
 });
@@ -1353,6 +1359,7 @@ function checklistItems(d) {
 function renderChecklist() {
   const d = state.plan;
   if (!d) return;
+  renderPaidSuggestions(d);
   const items = checklistItems(d);
   const t0 = today();
   const paid = items.filter(x => x.paid);
@@ -1383,6 +1390,102 @@ function renderChecklist() {
     </li>`).join('') +
     (past ? '<li class="hint ck-note">รอบที่ผ่านมาแสดงเฉพาะรายการที่ยังค้าง และรายการที่จ่ายครั้งล่าสุดในรอบนั้น</li>' : '');
 }
+
+// ---- รายการที่จ่ายไปรอบนี้ แต่ยังไม่อยู่ในเช็กลิสต์
+const BILL_LIKE = /บิล|สินเชื่อ|ผ่อน|ประกัน|ค่าเช่า|ส่วนกลาง|บัตรเครดิต|ที่พัก/;
+const normName = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+const billHits = (b, cp) => {
+  const k = normName(b.keyword), n = normName(b.name);
+  return !!cp && ((k && cp.includes(k)) || (n && cp.includes(n)));
+};
+/** รายจ่ายในรอบที่ยังไม่มีรายการเช็กลิสต์รองรับ (ผู้รับเดียวกันหลายยอด เช่น บัตรกรุงไทย 2 ใบ นับแยกกัน) */
+function uncoveredTxs(showAll) {
+  const bills = (state.plan && state.plan.bills) || [];
+  const txs = (state.txs || []).filter(t => t.type === 'expense' && !t.fund && (showAll || BILL_LIKE.test(t.category || '')));
+  const out = [];
+  groupBy(txs, t => normName(t.counterparty)).forEach(g => {
+    const left = g.items.slice();
+    bills.filter(b => billHits(b, g.key)).forEach(b => {
+      if (!left.length) return;
+      let bi = 0;
+      left.forEach((t, i) => { if (Math.abs(t.amount - b.amount) < Math.abs(left[bi].amount - b.amount)) bi = i; });
+      left.splice(bi, 1);
+    });
+    out.push(...left);
+  });
+  return out.sort((a, b) => (b.date + (b.time || '')).localeCompare(a.date + (a.time || '')));
+}
+const txToBill = t => ({
+  name: t.counterparty || t.category || 'รายจ่าย', amount: t.amount, dueDate: t.date, repeat: 'monthly', everyMonths: 1,
+  termMonths: 0, category: t.category || '', member: t.member || '', fund: '', keyword: t.counterparty || '', note: '',
+});
+let ckShowAllTx = false;
+function renderPaidSuggestions() {
+  const list = uncoveredTxs(ckShowAllTx);
+  const anyOther = !ckShowAllTx && uncoveredTxs(true).length > list.length;
+  $('#ck-from-tx-card').hidden = !list.length && !anyOther && !ckShowAllTx;
+  $('#ck-add-all').hidden = !list.length;
+  $('#ck-show-all-tx').textContent = ckShowAllTx ? 'แสดงเฉพาะหมวดบิล/สินเชื่อ' : 'แสดงรายจ่ายหมวดอื่นด้วย';
+  $('#ck-show-all-tx').hidden = !ckShowAllTx && !anyOther;
+  $('#ck-from-tx').innerHTML = list.length ? list.map(t => `<li class="ck-row">
+      <span class="cico">${catIcon(t.category)}</span>
+      <span class="ck-main ck-static">
+        <span class="ck-name">${esc(t.counterparty || t.category)}</span>
+        <span class="ck-sub">จ่าย ${esc(shortTh(t.date))} · ${esc(t.category || '')}${t.member ? ' · ' + esc(t.member) : ''}</span>
+      </span>
+      <span class="ck-right"><span class="ck-amt">${money(t.amount)}</span><button type="button" class="ghost ck-addtx" data-addtx="${esc(t.id)}">＋ เพิ่ม</button></span>
+    </li>`).join('') : '<li class="empty">รายจ่ายรอบนี้อยู่ในเช็กลิสต์ครบแล้ว</li>';
+}
+
+/** หา bill ที่เพิ่งบันทึก (ยังไม่เคยจ่าย) แล้วสั่งจ่ายแล้ว — คืนจำนวนที่ติ๊กสำเร็จ */
+async function markNewBillsPaid(saved) {
+  const plan = await api('plan', { month: state.month });
+  const used = new Set();
+  let n = 0;
+  for (const s of saved) {
+    const b = plan.bills.filter(x => !used.has(x.id) && !x.lastPaid && x.name === s.name
+      && Math.abs(Number(x.amount) - Number(s.amount)) < 0.005 && String(x.dueDate).slice(0, 10) === s.dueDate).pop();
+    if (!b) continue;
+    used.add(b.id);
+    try { await api('payBill', { id: b.id }); n++; } catch (err) { /* นับเฉพาะที่สำเร็จ */ }
+  }
+  return n;
+}
+
+$('#ck-from-tx').addEventListener('click', e => {
+  const btn = e.target.closest('[data-addtx]');
+  if (!btn) return;
+  const t = state.txs.find(x => String(x.id) === btn.dataset.addtx);
+  if (!t) return;
+  openBill(txToBill(t));
+  billFromTx = true;
+  $('#bill-title').textContent = 'เพิ่มเข้าเช็กลิสต์ (ติ๊กว่าจ่ายแล้ว)';
+});
+$('#ck-show-all-tx').addEventListener('click', () => { ckShowAllTx = !ckShowAllTx; renderPaidSuggestions(); });
+$('#ck-add-all').addEventListener('click', async () => {
+  const list = uncoveredTxs(ckShowAllTx);
+  if (!list.length || !confirm(`เพิ่ม ${list.length} รายการเข้าเช็กลิสต์เป็นรายจ่ายทุกเดือน และติ๊กว่าจ่ายแล้วในรอบนี้?`)) return;
+  const btn = $('#ck-add-all');
+  btn.disabled = true;
+  const saved = [];
+  try {
+    for (const t of list) {
+      const bill = txToBill(t);
+      progress(`กำลังเพิ่ม ${saved.length + 1}/${list.length}: ${bill.name}`);
+      await api('saveBill', { bill });
+      saved.push(bill);
+    }
+    progress('กำลังติ๊กว่าจ่ายแล้ว …');
+    const paid = await markNewBillsPaid(saved);
+    toast(paid === saved.length ? `เพิ่มและติ๊กจ่ายแล้ว ${paid} รายการ`
+      : `เพิ่ม ${saved.length} รายการ · ติ๊กจ่ายแล้ว ${paid} รายการ (ที่เหลือติ๊กเองได้)`);
+  } catch (err) {
+    toast((saved.length ? `เพิ่มได้ ${saved.length} รายการแล้วหยุด: ` : '') + err.message);
+  }
+  progress('');
+  btn.disabled = false;
+  loadPlan();
+});
 
 $('#ck-add').addEventListener('click', () => {
   openBill(null);

@@ -948,3 +948,7 @@ dialog::backdrop { background: rgba(24,54,47,.4); backdrop-filter: blur(4px); }
 .ck-amt { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ck-box:focus-visible, .ck-main:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .ck-note { padding-top: 10px; border-top: 1px solid var(--border); }
+.ck-row > .cico { width: 32px; height: 32px; grid-row: auto; font-size: 1rem; }
+.ck-static { cursor: default; }
+.ck-addtx { padding: 4px 10px; font-size: .8rem; min-height: 0; }
+.ck-more { margin-top: 10px; font-size: .85rem; }
