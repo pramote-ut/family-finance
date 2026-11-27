@@ -26,6 +26,7 @@
       <button data-goto="dashboard" class="active"><span class="nav-ico">⌂</span>ภาพรวม</button>
       <button data-goto="list"><span class="nav-ico">≡</span>รายการ</button>
       <button data-goto="add"><span class="nav-ico">＋</span>เพิ่มรายการ</button>
+      <button data-goto="checklist"><span class="nav-ico">☑</span>เช็กลิสต์จ่ายบิล</button>
       <button data-goto="plan"><span class="nav-ico">◷</span>บิลและงบ</button>
       <button data-goto="funds"><span class="nav-ico">♧</span>เป้าหมายเงินเก็บ</button>
       <button data-goto="settings"><span class="nav-ico">⚙</span>ตั้งค่า</button>
@@ -265,6 +266,20 @@
       <div id="funds-list"></div>
     </section>
 
+    <!-- เช็กลิสต์จ่ายบิล -->
+    <section id="view-checklist" class="view">
+      <div class="plan-metrics">
+        <div class="m-card"><span>จ่ายแล้ว</span><b id="ck-count">–</b><small id="ck-period"></small></div>
+        <div class="m-card"><span>ยอดที่จ่ายแล้ว</span><b id="ck-paid">–</b><small>ตามยอดที่ตั้งไว้ในแต่ละรายการ</small></div>
+        <div class="m-card"><span>ยังค้างจ่าย</span><b id="ck-left">–</b><small id="ck-late"></small></div>
+      </div>
+      <div class="card">
+        <div class="row-between"><h2>รายจ่ายประจำรอบนี้</h2><button class="ghost" id="ck-add">＋ เพิ่มรายการ</button></div>
+        <p class="hint">ติ๊กเมื่อจ่ายแล้ว ระบบจะเลื่อนวันครบกำหนดไปรอบถัดไปให้ บันทึกสลิปที่ยอดใกล้เคียงจะติ๊กให้อัตโนมัติ · แตะชื่อรายการเพื่อแก้วันครบกำหนดหรือยอด</p>
+        <ul class="ck-list" id="ck-list"></ul>
+      </div>
+    </section>
+
     <!-- วางแผน -->
     <section id="view-plan" class="view">
       <div class="plan-metrics">
@@ -336,6 +351,7 @@
     <button data-goto="dashboard" class="active"><span class="ico">◔</span>ภาพรวม</button>
     <button data-goto="list"><span class="ico">≡</span>รายการ</button>
     <button data-goto="add"><span class="ico">＋</span>เพิ่ม</button>
+    <button data-goto="checklist"><span class="ico">☑</span>เช็กลิสต์</button>
     <button data-goto="plan"><span class="ico">◎</span>วางแผน</button>
     <button data-goto="funds"><span class="ico">฿</span>เงินเก็บ</button>
     <button data-goto="settings"><span class="ico">⚙</span>ตั้งค่า</button>

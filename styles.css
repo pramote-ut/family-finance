@@ -495,7 +495,7 @@ body:not([data-view="dashboard"]) .topbar .member-tabs { display: none; }
 }
 
 /* ================================================================ v3: ไม่มีเมนูซ้าย — เมนูบนหัวหน้า (จอคอม) / แถบล่าง (มือถือ) */
-.tabbar { grid-template-columns: repeat(6, 1fr); }
+.tabbar { grid-template-columns: repeat(7, 1fr); }
 .tabbar button { font-size: .72rem; }
 .top-nav { display: none; }
 @media (min-width: 1000px) {
@@ -849,7 +849,7 @@ dialog::backdrop { background: rgba(24,54,47,.4); backdrop-filter: blur(4px); }
   .chart-box.tall { height: 230px; }
   .budget-donut { min-height: 230px; }
   .tabbar {
-    display: grid; grid-template-columns: repeat(6, 1fr); padding: 5px 4px env(safe-area-inset-bottom);
+    display: grid; grid-template-columns: repeat(7, 1fr); padding: 5px 4px env(safe-area-inset-bottom);
     background: rgba(255,253,248,.96); backdrop-filter: blur(16px); box-shadow: 0 -8px 28px rgba(49,38,23,.07);
   }
   .tabbar button { min-width: 0; font-size: .67rem; padding: 5px 0 7px; }
@@ -929,3 +929,22 @@ dialog::backdrop { background: rgba(24,54,47,.4); backdrop-filter: blur(4px); }
   .fund-actions { grid-template-columns: 1fr 1fr; }
   .fund-actions .primary { grid-column: 1 / -1; }
 }
+
+/* เช็กลิสต์จ่ายบิล */
+.ck-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.ck-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+.ck-row:first-child { border-top: 0; }
+.ck-box {
+  width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--muted); background: transparent;
+  color: transparent; font-weight: 700; font-size: 1rem; line-height: 1; cursor: pointer; display: grid; place-items: center; padding: 0;
+}
+.ck-box:hover:not(:disabled) { border-color: var(--good); color: color-mix(in srgb, var(--good) 45%, transparent); }
+.ck-row.paid .ck-box { background: var(--good); border-color: var(--good); color: var(--surface); cursor: default; opacity: 1; }
+.ck-main { min-width: 0; border: 0; background: none; padding: 0; text-align: left; cursor: pointer; color: inherit; font: inherit; display: flex; flex-direction: column; gap: 1px; }
+.ck-name { font-weight: 500; overflow-wrap: anywhere; }
+.ck-row.paid .ck-name { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--good); }
+.ck-sub { color: var(--muted); font-size: .8rem; }
+.ck-right { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.ck-amt { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ck-box:focus-visible, .ck-main:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ck-note { padding-top: 10px; border-top: 1px solid var(--border); }

@@ -1,5 +1,5 @@
 // Service worker: แคชหน้าแอปไว้เปิดได้เร็ว/ออฟไลน์ ส่วนข้อมูล (POST ไป Apps Script) ไม่แคช
-const CACHE = 'mm-v18';
+const CACHE = 'mm-v19';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'manifest.webmanifest', 'icons/icon.svg', 'images/family-boy.png'];
 
 self.addEventListener('install', e => {

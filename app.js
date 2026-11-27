@@ -82,7 +82,7 @@ async function api(action, payload) {
 
 function go(view) {
   if (view === 'funds') loadFunds();
-  if (view === 'plan') loadPlan();
+  if (view === 'plan' || view === 'checklist') loadPlan();
   $$('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
   $$('.tabbar button, .top-nav button').forEach(b => b.classList.toggle('active', b.dataset.goto === view));
   document.body.dataset.view = view;
@@ -1059,6 +1059,7 @@ $('#month').addEventListener('change', e => {
   state.monthPicked = true;
   syncPeriodUi();
   loadMonth();
+  if (['plan', 'checklist'].includes(document.body.dataset.view)) loadPlan();
 });
 
 $('#cycle-save').addEventListener('click', async () => {
@@ -1155,6 +1156,7 @@ async function loadPlan() {
   try {
     state.plan = await api('plan', { month: state.month });
     renderPlan();
+    renderChecklist();
   } catch (err) { toast(err.message); }
 }
 
@@ -1322,6 +1324,87 @@ $('#bill-delete').addEventListener('click', async () => {
     toast('ลบแล้ว');
     loadPlan();
   } catch (err) { toast(err.message); }
+});
+
+// ---------------------------------------------------------------- เช็กลิสต์จ่ายบิล
+// ใช้ข้อมูลรายจ่ายล่วงหน้าชุดเดียวกับหน้าวางแผน
+// จ่ายแล้วในรอบนี้ = วันที่จ่ายล่าสุดอยู่ในรอบ หรือ งวดที่จ่ายล่าสุดครอบคลุม (วันครบกำหนดก่อนเลื่อน) อยู่ในรอบ
+// (เช่น รอบเริ่มวันที่ 28 แล้วจ่ายบิลที่ครบกำหนด 28 พ.ย. ไปตั้งแต่ 27 พ.ย. ก็ยังนับว่าจ่ายแล้วในรอบ 28 พ.ย.)
+
+const billStep = b => (b.repeat === 'monthly' ? 1 : b.repeat === 'months' ? Number(b.everyMonths) || 1 : b.repeat === 'yearly' ? 12 : 0);
+/** วันครบกำหนดของงวดที่จ่ายล่าสุด: บิลที่ยังใช้งานถูกเลื่อนไปงวดถัดไปแล้ว จึงถอยกลับหนึ่งงวด */
+function coveredDue(b) {
+  if (!b.lastPaid || !b.dueDate) return '';
+  const k = b.active ? billStep(b) : 0;
+  return k ? isoUTC(+b.dueDate.slice(0, 4), +b.dueDate.slice(5, 7) - 1 - k, +b.dueDate.slice(8, 10)) : b.dueDate;
+}
+/** ลำดับวันในรอบ (เริ่มนับจากวันเริ่มรอบ) เพื่อเรียงรายการตามวันครบกำหนด */
+const cycleOffset = iso => (iso ? (Number(iso.slice(8, 10)) - cycleDay() + 31) % 31 : 99);
+function checklistItems(d) {
+  const r = periodRange(state.month);
+  const inRange = x => !!x && x >= r.from && x <= r.to;
+  return (d.bills || [])
+    .map(b => ({ b, paid: inRange(b.lastPaid) || inRange(coveredDue(b)) }))
+    .filter(x => x.paid || (x.b.active && x.b.dueDate && x.b.dueDate <= r.to))
+    .sort((x, y) => cycleOffset(x.paid ? coveredDue(x.b) || x.b.lastPaid : x.b.dueDate) - cycleOffset(y.paid ? coveredDue(y.b) || y.b.lastPaid : y.b.dueDate)
+      || x.b.name.localeCompare(y.b.name, 'th'));
+}
+
+function renderChecklist() {
+  const d = state.plan;
+  if (!d) return;
+  const items = checklistItems(d);
+  const t0 = today();
+  const paid = items.filter(x => x.paid);
+  const open = items.filter(x => !x.paid);
+  const late = open.filter(x => dayIndex(x.b.dueDate, t0) < 0);
+  $('#ck-count').textContent = items.length ? `${paid.length} / ${items.length}` : '–';
+  $('#ck-period').textContent = 'รอบ ' + periodText(state.month);
+  $('#ck-paid').textContent = money(paid.reduce((a, x) => a + x.b.amount, 0));
+  $('#ck-left').textContent = money(open.reduce((a, x) => a + x.b.amount, 0));
+  $('#ck-late').textContent = late.length ? `เลยกำหนด ${late.length} รายการ` : open.length ? `เหลือ ${open.length} รายการ` : items.length ? 'จ่ายครบแล้ว ✓' : '';
+
+  const list = $('#ck-list');
+  if (!items.length) {
+    list.innerHTML = (d.bills || []).some(b => b.active)
+      ? '<li class="empty">ไม่มีรายการที่ครบกำหนดในรอบนี้</li>'
+      : '<li class="empty">ยังไม่มีรายจ่ายประจำ กด "＋ เพิ่มรายการ" แล้วใส่ชื่อ ยอด วันครบกำหนด และเลือก "ทุกเดือน" เช่น บัตรเครดิต ค่าส่วนกลาง ค่างวดรถ</li>';
+    return;
+  }
+  const past = state.month < currentPeriod();
+  list.innerHTML = items.map(({ b, paid: isPaid }) => `<li class="ck-row${isPaid ? ' paid' : ''}">
+      <button type="button" class="ck-box" role="checkbox" aria-checked="${isPaid}" aria-label="${esc(b.name)}"
+        ${isPaid ? 'disabled title="จ่ายแล้ว"' : `data-ckpay="${esc(b.id)}"`}>✓</button>
+      <button type="button" class="ck-main" data-ckedit="${esc(b.id)}">
+        <span class="ck-name">${esc(b.name)}</span>
+        <span class="ck-sub">${isPaid ? 'จ่ายแล้ว ' + esc(shortTh(b.lastPaid)) : 'ครบกำหนด ' + esc(shortTh(b.dueDate))} · ${esc(repeatText(b))}${termText(b)}${b.member ? ' · ' + esc(b.member) : ''}</span>
+      </button>
+      <span class="ck-right"><span class="ck-amt">${money(b.amount)}</span>${isPaid ? '<span class="pill-s green">จ่ายแล้ว</span>' : duePill(dayIndex(b.dueDate, t0))}</span>
+    </li>`).join('') +
+    (past ? '<li class="hint ck-note">รอบที่ผ่านมาแสดงเฉพาะรายการที่ยังค้าง และรายการที่จ่ายครั้งล่าสุดในรอบนั้น</li>' : '');
+}
+
+$('#ck-add').addEventListener('click', () => {
+  openBill(null);
+  const f = $('#bill-form');
+  f.repeat.value = 'monthly';
+  syncBillFields();
+});
+$('#ck-list').addEventListener('click', async e => {
+  const edit = e.target.closest('[data-ckedit]');
+  if (edit) return openBill(state.plan.bills.find(b => b.id === edit.dataset.ckedit));
+  const box = e.target.closest('[data-ckpay]');
+  if (!box) return;
+  const b = state.plan.bills.find(x => x.id === box.dataset.ckpay);
+  if (!b || !confirm(`ติ๊กว่า "${b.name}" จ่ายแล้ว?` + (b.repeat === 'once' ? '' : ' ระบบจะเลื่อนวันครบกำหนดไปรอบถัดไป'))) return;
+  box.disabled = true;
+  box.closest('.ck-row').classList.add('paid');
+  try {
+    const result = await api('payBill', { id: b.id });
+    toast(result.completed ? 'บันทึกแล้ว · ชำระครบกำหนด' : result.remainingMonths > 0
+      ? `บันทึกแล้ว · เหลือ ${result.remainingMonths} เดือน` : 'บันทึกว่าจ่ายแล้ว');
+  } catch (err) { toast(err.message); }
+  loadPlan();
 });
 
 // ---------------------------------------------------------------- funds (เงินเก็บ)
